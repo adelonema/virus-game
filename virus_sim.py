@@ -1,21 +1,26 @@
 import random
 import numpy as np
+import math
 from matplotlib import pyplot as plt
 
-# Globale Variablen:
+# Global variables:
 
-NUM_POINTS = 200
-DIMENSIONS = 100
-INF_DISTANCE = 10
+TIMEFRAMES = 200
+NUM_POINTS = 600
+DIMENSIONS = 400
+INF_DISTANCE = 20
 INF_PROB = .1
 RECOVERY_TIME = 20
 RECOVERY_RESET = 30
+SPEED = 7
 
 
 class Point:
-    def __init__(self, x_start, y_start, status, recovery):
+    def __init__(self, x_start, y_start, velox, veloy, status, recovery):
         self.x = x_start
         self.y = y_start
+        self.velox = velox
+        self.veloy = veloy
         self.status = status
         self.recovery = recovery
 
@@ -23,7 +28,8 @@ class Point:
     #     return "Hallo ich bin ein Punkt.. x: " + str(self.x)
 
     def __str__(self):
-        return f"Point: x = {self.x}, y = {self.y}, status = {self.status}, recovery = {self.recovery}"
+        return (f"Point: x = {self.x}, y = {self.y}, velox = {self.velox}, "
+                f"veloy = {self.veloy}, status = {self.status}, recovery = {self.recovery}")
 
     def __repr__(self):
         return self.__str__()
@@ -32,7 +38,8 @@ class Point:
 # for i in range(100):
 #     all_points.append(Point(np.random.randint(100), np.random.randint(100)))
 
-all_points = [Point(np.random.randint(DIMENSIONS), np.random.randint(DIMENSIONS), "Sane", 0) for i in range(NUM_POINTS)]
+all_points = [Point(np.random.randint(DIMENSIONS), np.random.randint(DIMENSIONS), (0.5 - np.random.random()) * SPEED, (0.5 - np.random.random()) * SPEED, "Sane", 0) for i in range(NUM_POINTS)]
+# all_points = [Point(np.random.randint(DIMENSIONS), np.random.randint(DIMENSIONS), np.random.randint(360), (0.5 - np.random.random()) * SPEED, "Sane", 0) for i in range(NUM_POINTS)]
 
 # plt.plot([point.x for point in all_points], [point.y for point in all_points], "o")
 # plt.show()
@@ -54,15 +61,44 @@ color = {
 all_points[np.random.randint(NUM_POINTS)].status = "Infected"
 
 # Time frames
-for i in range(500):
+for i in range(TIMEFRAMES):
     # Initialise lists for infected points
     infected_x = []
     infected_y = []
 
     # Within each time frame go through all points:
     for point in all_points:
-        point.x = point.x + (np.random.random() - .5) * 3
-        point.y = point.y + (np.random.random() - .5) * 3
+
+        # Completely random movement:
+        # point.x = point.x + (np.random.random() - .5) * 3
+        # point.y = point.y + (np.random.random() - .5) * 3
+
+        # Directional movement:
+        point.x = point.x + point.velox
+        point.y = point.y + point.veloy
+        # point.x = point.x + point.velocity * math.cos(point.direction * math.pi / 180)
+        # point.y = point.y + point.velocity * math.sin(point.direction * math.pi / 180)
+
+        # Check if points are out of bound and let them bounce off the wall:
+        if point.x > DIMENSIONS:
+            point.x = DIMENSIONS - (point.x - DIMENSIONS)
+            point.velox = - point.velox
+            # point.direction = 360 - point.direction
+        elif point.x < 0:
+            point.x = - point.x
+            point.velox = - point.velox
+            # point.direction = 360 - point.direction
+
+        # Same for y coordinates:
+        if point.y > DIMENSIONS:
+            point.y = DIMENSIONS - (point.y - DIMENSIONS)
+            point.veloy = - point.veloy
+            # point.direction = 360 - point.direction
+        elif point.y < 0:
+            point.y = - point.y
+            point.veloy = - point.veloy
+            # point.direction = 360 - point.direction
+
         if point.status == "Infected":
             # Fill lists with coordinates of infected points
             infected_x.append(point.x)
@@ -88,11 +124,20 @@ for i in range(500):
             if np.random.random() < INF_PROB:
                 point.status = "Infected"
 
+    plt.plot(all_points[1].x, all_points[1].y, "o", color=color[all_points[1].status])
+    ax = plt.gca()
+    ax.set_xlim([0, DIMENSIONS])
+    ax.set_ylim([0, DIMENSIONS])
+    plt.gca().set_aspect('equal')
 
     # Plot each time frame
     for point in all_points:
         plt.plot(point.x, point.y, "o", color=color[point.status])
-    # ax.set(xlim=(0, xmax), ylim=(ymin, ymax))
+
+
+
+            #
+            # ax.set(xlim=(0, DIMENSIONS), ylim=(0, DIMENSIONS))
 
     #plt.show()
     plt.savefig("./points/all_points" + str(i) + ".png")
