@@ -1,0 +1,1 @@
+ffmpeg -framerate 3 -i "./points/all_points%d.png"   -c:v libx264 -r 30 -pix_fmt yuv420p virus.mp4
