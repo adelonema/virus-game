@@ -2,6 +2,7 @@ import random
 import numpy as np
 import math
 from matplotlib import pyplot as plt
+from collections import Counter
 
 # Global variables:
 
@@ -59,6 +60,11 @@ color = {
 
 # Set random point to be infected:
 all_points[np.random.randint(NUM_POINTS)].status = "Infected"
+
+# Initialise lists for number of sane, infected and recovered points
+sanecum = []
+infcum = []
+recovcum = []
 
 # Time frames
 for i in range(TIMEFRAMES):
@@ -133,14 +139,29 @@ for i in range(TIMEFRAMES):
     # Plot each time frame
     for point in all_points:
         plt.plot(point.x, point.y, "o", color=color[point.status])
-
-
-
-            #
-            # ax.set(xlim=(0, DIMENSIONS), ylim=(0, DIMENSIONS))
-
     #plt.show()
     plt.savefig("./points/all_points" + str(i) + ".png")
     plt.close()
 
+    # Calculate the number of infected points per timestep:
+
+    infpertime = [j.status for j in all_points]
+    cnt = Counter(infpertime)
+    # sanecount = sanecum.count("Sane")
+    sanecum.append(cnt["Sane"])
+    infcum.append(cnt["Infected"])
+    recovcum.append(cnt["Recovered"])
+
+    # Plot them:
+
+    plt.plot(sanecum, color=color['Sane'], label='Sane')
+    plt.plot(infcum, color=color['Infected'], label='Infected')
+    plt.plot(recovcum, color=color['Recovered'], label='Recovered')
+    plt.xlabel("Time steps")
+    plt.ylabel("Affected points")
+    plt.legend(loc='center left')
+    # plt.title('multiple plots')
+    # plt.show()
+    plt.savefig("./stats/cumplots" + str(i) + ".png")
+    plt.close()
 
