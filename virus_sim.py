@@ -4,7 +4,10 @@ import math
 from matplotlib import pyplot as plt
 from collections import Counter
 
+
+# =============================================================================
 # Global variables:
+# =============================================================================
 
 TIMEFRAMES = 200
 NUM_POINTS = 600
@@ -15,6 +18,15 @@ RECOVERY_TIME = 20
 RECOVERY_RESET = 30
 SPEED = 7
 
+color = {
+    "Sane": "slategrey",
+    "Infected": "indianred",
+    "Recovered": "darkseagreen"
+}
+
+# =============================================================================
+# Initialise class:
+# =============================================================================
 
 class Point:
     def __init__(self, x_start, y_start, velox, veloy, status, recovery):
@@ -35,38 +47,55 @@ class Point:
     def __repr__(self):
         return self.__str__()
 
-# all_points = []
-# for i in range(100):
-#     all_points.append(Point(np.random.randint(100), np.random.randint(100)))
+# =============================================================================
+# Create class instance:
+# =============================================================================
 
-all_points = [Point(np.random.randint(DIMENSIONS), np.random.randint(DIMENSIONS), (0.5 - np.random.random()) * SPEED, (0.5 - np.random.random()) * SPEED, "Sane", 0) for i in range(NUM_POINTS)]
+all_points = [Point(np.random.randint(DIMENSIONS), np.random.randint(DIMENSIONS), (0.5 - np.random.random())
+                    * SPEED, (0.5 - np.random.random()) * SPEED, "Sane", 0) for i in range(NUM_POINTS)]
+
+
 # all_points = [Point(np.random.randint(DIMENSIONS), np.random.randint(DIMENSIONS), np.random.randint(360), (0.5 - np.random.random()) * SPEED, "Sane", 0) for i in range(NUM_POINTS)]
 
 # plt.plot([point.x for point in all_points], [point.y for point in all_points], "o")
 # plt.show()
 
-color = {
-    "Sane" : "lightseagreen",
-    "Infected" : "orangered",
-    "Recovered" : "deepskyblue"
-}
 
 # for point in all_points:
-#
+
 #     plt.plot(point.x, point.y, "o", color = color[point.status])
-#
+
 # plt.show()
 
 
+# =============================================================================
 # Set random point to be infected:
+# =============================================================================
+
 all_points[np.random.randint(NUM_POINTS)].status = "Infected"
 
+
+# =============================================================================
 # Initialise lists for number of sane, infected and recovered points
+# =============================================================================
+
 sanecum = []
 infcum = []
 recovcum = []
 
-# Time frames
+# =============================================================================
+# Time frames: 
+# 
+#   Calculate the following per time frame
+#       * Who gets infected
+#       * The number of new infections and recoveries
+#
+#   Plot all updated points per time frame
+#
+#   Calculate the statistics and plot them per time frame
+# 
+# =============================================================================
+
 for i in range(TIMEFRAMES):
     # Initialise lists for infected points
     infected_x = []
@@ -122,15 +151,16 @@ for i in range(TIMEFRAMES):
     infvec_x = np.array(infected_x)
     infvec_y = np.array(infected_y)
 
-
     # Koordinaten abrufen und checken, ob sie mit den Koordinaten von Punkten in der Infizierten-Liste liegen
     for point in all_points:
-        dist = np.sqrt(np.abs(infvec_x - point.x) ** 2 + np.abs(infvec_y - point.y) ** 2)
+        dist = np.sqrt(np.abs(infvec_x - point.x) ** 2 +
+                       np.abs(infvec_y - point.y) ** 2)
         if any(dist < INF_DISTANCE) and point.recovery == 0:
             if np.random.random() < INF_PROB:
                 point.status = "Infected"
 
-    plt.plot(all_points[1].x, all_points[1].y, "o", color=color[all_points[1].status])
+    plt.plot(all_points[1].x, all_points[1].y, "o",
+             color=color[all_points[1].status])
     ax = plt.gca()
     ax.set_xlim([0, DIMENSIONS])
     ax.set_ylim([0, DIMENSIONS])
@@ -139,7 +169,7 @@ for i in range(TIMEFRAMES):
     # Plot each time frame
     for point in all_points:
         plt.plot(point.x, point.y, "o", color=color[point.status])
-    #plt.show()
+    # plt.show()
     plt.savefig("./points/all_points" + str(i) + ".png")
     plt.close()
 
@@ -164,4 +194,3 @@ for i in range(TIMEFRAMES):
     # plt.show()
     plt.savefig("./stats/cumplots" + str(i) + ".png")
     plt.close()
-
