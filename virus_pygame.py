@@ -23,26 +23,45 @@ backgrounds      = px.colors.sequential.Viridis # [ WHITE, BLUE, WHITE, BLUE, BL
 background_index = 0     # index of the currently used background
 
 # Screen information
-SCREEN_WIDTH = 400
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 900
+SCREEN_HEIGHT = 900
 
-DISPLAYSURF = pygame.display.set_mode((400, 600))
+DISPLAYSURF = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 # DISPLAYSURF.fill(WHITE)
-pygame.display.set_caption("Game")
+pygame.display.set_caption("Super Mega Game")
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, speed):
         super().__init__()
+        self.speed = speed
         self.image = pygame.image.load("Enemy.png")
         self.rect = self.image.get_rect()
         self.rect.center = (random.randint(40, SCREEN_WIDTH - 40), 0)
 
     def move(self):
-        self.rect.move_ip(0, 10)
-        if (self.rect.bottom > 600):
+        self.rect.move_ip(0, self.speed)
+        if self.rect.bottom > SCREEN_HEIGHT:
             self.rect.top = 0
-            self.rect.center = (random.randint(30, 370), 0)
+            self.rect.center = (random.randint(30, SCREEN_WIDTH-30), 0)
+
+    def draw(self, surface):
+        surface.blit(self.image, self.rect)
+
+
+class PowerUp(pygame.sprite.Sprite):
+    def __init__(self, speed):
+        super().__init__()
+        self.speed = speed
+        self.image = pygame.image.load("PowerUp.png")
+        self.rect = self.image.get_rect()
+        self.rect.center = (random.randint(40, SCREEN_WIDTH - 40), 0)
+
+    def move(self):
+        self.rect.move_ip(0, self.speed)
+        if self.rect.bottom > SCREEN_HEIGHT:
+            self.rect.top = 0
+            self.rect.center = (random.randint(30, SCREEN_WIDTH-30), 0)
 
     def draw(self, surface):
         surface.blit(self.image, self.rect)
@@ -75,8 +94,9 @@ class Player(pygame.sprite.Sprite):
         surface.blit(self.image, self.rect)
 
 P1 = Player()
-E1 = Enemy()
-E2 = Enemy()
+E1 = Enemy(10)
+E2 = Enemy(12)
+POWER_UP_1 = PowerUp(15)
 
 while True:
     for event in pygame.event.get():
@@ -86,21 +106,23 @@ while True:
     P1.update()
     E1.move()
     E2.move()
+    POWER_UP_1.move()
 
     # Re-draw the screen background from the list after a delay
     time_now = pygame.time.get_ticks()
-    if (time_now > background_time + background_delay):
+    if time_now > background_time + background_delay:
         # switch to the next background
         background_time = time_now
         background_index += 1
         # if we're out of backgrounds, start back at the head of the list
-        if (background_index >= len(backgrounds)):
+        if background_index >= len(backgrounds):
             background_index = 0
 
     DISPLAYSURF.fill(backgrounds[ background_index ])
     P1.draw(DISPLAYSURF)
     E1.draw(DISPLAYSURF)
     E2.draw(DISPLAYSURF)
+    POWER_UP_1.draw(DISPLAYSURF)
 
     pygame.display.update()
     FramePerSec.tick(FPS)
