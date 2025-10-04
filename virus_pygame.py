@@ -28,17 +28,17 @@ SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 900
 SPEED = 5
 
+# Scoring
 LIFEPOINTS = 2
+HIGHSCORE = 0
 
 DISPLAYSURF = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 # DISPLAYSURF.fill(WHITE)
 pygame.display.set_caption("Super Mega Game")
 
 #Setting up Fonts
-font = pygame.font.SysFont("Verdana", 150)
+font = pygame.font.SysFont("Verdana", 140)
 font_small = pygame.font.SysFont("Verdana", 60)
-game_over = font.render("Game Over", True, BLACK)
-
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, speed):
@@ -153,10 +153,12 @@ while True:
         if background_index >= len(backgrounds):
             background_index = 0
 
+    # Show life points in top left corner:
     DISPLAYSURF.fill(backgrounds[ background_index ])
     text_surface = font_small.render(f'Life: {LIFEPOINTS}', True, (0, 0, 0))
     DISPLAYSURF.blit(text_surface, dest=(0, 0))
 
+    # Show score in top right corner:
     text_surface = font_small.render(f'Score: {int(time_now/10)}', True, (0, 0, 0))
     text_rect = text_surface.get_rect(topright=(SCREEN_WIDTH, 0))
     DISPLAYSURF.blit(text_surface, text_rect)
@@ -182,10 +184,24 @@ while True:
         if LIFEPOINTS == 0:
             for entity in all_sprites:
                 entity.kill()
-            text_rect = game_over.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2))
+            CURRENTSCORE = int(time_now/10)
+            HIGHSCORE_TEXT = open("highscore.txt")
+            HIGHSCORE = int(HIGHSCORE_TEXT.read())
+            HIGHSCORE_TEXT.close()
+            game_over = font.render(f"GAME OVER", True, BLACK)
+            game_over1 = font_small.render(f"This Game's Score: {CURRENTSCORE}", True, BLACK)
+            game_over2 = font_small.render(f"Highscore: {HIGHSCORE}", True, BLACK)
+            if HIGHSCORE < CURRENTSCORE:
+                with open("highscore.txt", "w") as f:
+                    f.write(f"{CURRENTSCORE}")
+            text_rect = game_over.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 180))
+            text_rect1 = game_over1.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 20))
+            text_rect2 = game_over2.get_rect(center=(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 200))
             DISPLAYSURF.blit(game_over, text_rect)
+            DISPLAYSURF.blit(game_over1, text_rect1)
+            DISPLAYSURF.blit(game_over2, text_rect2)
             pygame.display.update()
-            time.sleep(2)
+            time.sleep(5)
             pygame.quit()
             sys.exit()
 
