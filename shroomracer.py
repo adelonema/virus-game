@@ -42,6 +42,12 @@ font = pygame.font.SysFont("Verdana", 140, bold=True)
 font_small = pygame.font.SysFont("Verdana", 60)
 font_tiny = pygame.font.SysFont("Verdana", 30)
 
+#Creating Sprites Groups
+ENEMIES_SPRITE_GROUP = pygame.sprite.Group()
+POWER_UPS_SPRITE_GROUP = pygame.sprite.Group()
+ALL_SPRITES_SPRITE_GROUP = pygame.sprite.Group()
+
+
 # Different sprite classes:
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, speed):
@@ -140,6 +146,38 @@ class Level:
     def __init__(self, display, gameStateManager):
         self.display = display
         self.gameStateManager = gameStateManager
+
+    @staticmethod
+    def setup():
+        """ Setup level: reset all data and create required enemies + power-up entities """
+
+        # reset life points
+        global LIFEPOINTS
+        LIFEPOINTS = 2
+
+        # remove all old entities
+        ENEMIES_SPRITE_GROUP.empty()
+        ALL_SPRITES_SPRITE_GROUP.empty()
+        POWER_UPS_SPRITE_GROUP.empty()
+
+        # create new entities
+        enemy_1 = Enemy(10)
+        enemy_2 = Enemy(12)
+        power_up_1 = PowerUp(15)
+
+        # add sprites to groups
+        ENEMIES_SPRITE_GROUP.add(enemy_1)
+        ENEMIES_SPRITE_GROUP.add(enemy_2)
+        POWER_UPS_SPRITE_GROUP.add(power_up_1)
+        ALL_SPRITES_SPRITE_GROUP.add(PLAYER_1)
+        ALL_SPRITES_SPRITE_GROUP.add(enemy_1)
+        ALL_SPRITES_SPRITE_GROUP.add(enemy_2)
+        ALL_SPRITES_SPRITE_GROUP.add(power_up_1)
+
+        # set pygame timer to 0 (the value thats used for highscore and speed)
+        # todo: i think pygame timer can't be reset to 0. Maybe we need our own timer? :/
+
+
     def run(self):
         global background_index, background_time, LIFEPOINTS
         time_now = pygame.time.get_ticks()
@@ -164,30 +202,30 @@ class Level:
         DISPLAYSURF.blit(text_surface, text_rect)
 
         # Moves and Re-draws all Sprites
-        for entity in all_sprites:
+        for entity in ALL_SPRITES_SPRITE_GROUP:
             DISPLAYSURF.blit(entity.image, entity.rect)
             entity.move()
 
         # Pick up power ups:
-        if pygame.sprite.spritecollide(P1, powerups, dokill=True):
-            POWER_UP_1 = PowerUp(time_now / 3000 + 5)
-            powerups.add(POWER_UP_1)
-            all_sprites.add(POWER_UP_1)
+        if pygame.sprite.spritecollide(PLAYER_1, POWER_UPS_SPRITE_GROUP, dokill=True):
+            new_power_up = PowerUp(time_now / 3000 + 5)
+            POWER_UPS_SPRITE_GROUP.add(new_power_up)
+            ALL_SPRITES_SPRITE_GROUP.add(new_power_up)
             LIFEPOINTS += 1
             DISPLAYSURF.fill(GREEN)
             pygame.display.update()
 
         # To be run if collision occurs between Player and Enemy
-        if pygame.sprite.spritecollide(P1, enemies, dokill=True):
-            pygame.mixer.Sound('crash.wav').play()
-            E1 = Enemy(time_now / 3000 + 5)
-            enemies.add(E1)
-            all_sprites.add(E1)
+        if pygame.sprite.spritecollide(PLAYER_1, ENEMIES_SPRITE_GROUP, dokill=True):
+            # pygame.mixer.Sound('crash.wav').play()
+            new_enemy = Enemy(time_now / 3000 + 5)
+            ENEMIES_SPRITE_GROUP.add(new_enemy)
+            ALL_SPRITES_SPRITE_GROUP.add(new_enemy)
             DISPLAYSURF.fill(RED)
             pygame.display.update()
             LIFEPOINTS -= 1
             if LIFEPOINTS == 0:
-                for entity in all_sprites:
+                for entity in ALL_SPRITES_SPRITE_GROUP:
                     entity.kill()
 
                 # write game score to temp files:
@@ -218,6 +256,7 @@ class Start:
 
         keys = pygame.key.get_pressed()
         if keys[pygame.K_e]:
+            Level.setup()
             self.gameStateManager.set_state('level')
 
 class Endscreen:
@@ -283,7 +322,7 @@ class Endscreen:
             pygame.quit()
             sys.exit()
         elif keys[pygame.K_RETURN]:
-            LIFEPOINTS = 2
+            Level.setup()
             self.gameStateManager.set_state('level')
 
 # used this video for the GameStateManager setup: https://www.youtube.com/watch?v=r0ixaTQxsUI
@@ -296,25 +335,11 @@ class GameStateManager:
         self.currentState = state
 
 # def scoretable(CURRENTSCORE):
-#
 
-#Setting up Sprites
-P1 = Player()
-E1 = Enemy(10)
-E2 = Enemy(12)
-POWER_UP_1 = PowerUp(15)
 
-#Creating Sprites Groups
-enemies = pygame.sprite.Group()
-enemies.add(E1)
-enemies.add(E2)
-powerups = pygame.sprite.Group()
-powerups.add(POWER_UP_1)
-all_sprites = pygame.sprite.Group()
-all_sprites.add(P1)
-all_sprites.add(E1)
-all_sprites.add(E2)
-all_sprites.add(POWER_UP_1)
+# initialise player
+PLAYER_1 = Player()  # todo: hmm global initialisation at end of file is not perfect. But ok right now, i guess?
+
 
 if __name__ == '__main__':
     game = Main()
